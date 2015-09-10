@@ -1,0 +1,5 @@
+/cookbooks/
+/tmp/
+/.aws/
+/.vagrant/
+/.idea/
