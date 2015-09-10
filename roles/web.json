@@ -5,16 +5,20 @@
   "description": "The base role for systems that serve HTTP traffic",
   "default_attributes": {
     "user":{
-      "name": "vagrant"
+      "name": "www-data"
     },
     "nginx":{
       "default_site_enabled": false,
-      "user": "vagrant",
-      "group": "vagrant"
+      "user": "www-data",
+      "group": "www-data"
+    },
+    "services":{
+      "hhvm": [ "enable", "start" ]
     }
   },
   "run_list": [
     "recipe[nginx::source]",
-    "recipe[hhvm]"
+    "recipe[hhvm]",
+    "recipe[services]"
   ]
 }

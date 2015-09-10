@@ -1,17 +1,9 @@
 {
-  "name": "web",
+  "name": "blurobot",
   "chef_type": "role",
   "json_class": "Chef::Role",
-  "description": "The base role for systems that serve HTTP traffic",
+  "description": "Blurobot project role",
   "default_attributes": {
-    "user":{
-      "name": "vagrant"
-    },
-    "nginx":{
-      "default_site_enabled": false,
-      "user": "vagrant",
-      "group": "vagrant"
-    }
   },
   "run_list": [
     "recipe[nginx::source]",

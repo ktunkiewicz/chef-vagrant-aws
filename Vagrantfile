@@ -12,15 +12,14 @@ VAGRANTFILE_API_VERSION = "2"
 # You can modify the project name below:
 
 project = 'blurobot'
+project_files = '../BluRobotWebApp'
 
 #
 # This script was created for Ubuntu 12.04 but it should work fine with any distribution.
-# You can change the local image name below, or add your custom box/url. The image that you select
-# should obviously match the AMI that you select for your AWS instances.
+# You can change the local image name below. The image that you select should obviously match
+# the AMI that you select for your AWS instances.
 #
-
 box = "ubuntu/precise64"
-#box_url = nil
 
 #
 # Configuration of the AWS account should be placed in .aws/config.json file
@@ -54,17 +53,20 @@ active_provider = args['provider'].nil? ? 'virtualbox' : args['provider']
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = box
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  config.vm.synced_folder project_files, "/webapps/#{project}",
+    owner: "www-data", group: "www-data"
 
   supported_providers.each do |provider|
     next unless active_provider == provider
 
-    config.vm.define "#{active_provider}_#{provider}" do |box|
+    config.vm.define "#{project}_#{provider}" do |box|
 
       #
       # VirtualBox
       #
       config.vm.provider "virtualbox" do |vb|
-        config.vm.network "forwarded_port", guest: 80, host: 8080
         vb.customize ["modifyvm", :id, "--memory", "1024"]
       end
 
