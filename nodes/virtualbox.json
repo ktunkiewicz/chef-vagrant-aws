@@ -1,6 +1,12 @@
 {
+  "website": {
+    "url": "blurobot.dev",
+    "name": "blurobot",
+    "public": "/public"
+  },
   "run_list": [
-    "role[web]"
+    "role[web]",
+    "role[blurobot]"
   ]
 }
 

@@ -1,0 +1,30 @@
+server {
+  listen   80 default_server;
+  server_name  <%= @url %>;
+
+  access_log  /var/log/nginx/<%= @name %>.access.log;
+  error_log  /var/log/nginx/<%= @name %>.error.log notice;
+
+  root   /webapps/<%= @name %><%= @public %>;
+  index  index.php index.html;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location = /favicon.ico { log_not_found off; access_log off; }
+  location = /robots.txt  { log_not_found off; access_log off; }
+
+  location ~ /\.ht {
+    deny all;
+  }
+
+  location ~ \.php$ {
+    fastcgi_keep_conn on;
+    fastcgi_pass   127.0.0.1:9000;
+    fastcgi_index  index.php;
+    fastcgi_param  SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+    fastcgi_param  DOCUMENT_ROOT $realpath_root;
+    include        fastcgi_params;
+  }
+}

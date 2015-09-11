@@ -25,7 +25,13 @@ SITE
     yum-epel (0.6.2)
       yum (~> 3.2)
 
+PATH
+  remote: ./site-cookbooks
+  specs:
+    blurobot (0.1.0)
+
 DEPENDENCIES
+  blurobot (>= 0)
   hhvm (>= 0)
   nginx (>= 0)
   services (>= 0)

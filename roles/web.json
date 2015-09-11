@@ -9,14 +9,14 @@
     },
     "nginx":{
       "default_site_enabled": false,
-      "user": "www-data",
-      "group": "www-data"
+      "user": "www-data"
     },
     "services":{
       "hhvm": [ "enable", "start" ]
     }
   },
   "run_list": [
+    "recipe[apt]",
     "recipe[nginx::source]",
     "recipe[hhvm]",
     "recipe[services]"

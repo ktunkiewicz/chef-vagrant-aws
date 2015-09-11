@@ -3,11 +3,9 @@
 
 site 'https://supermarket.getchef.com/api/v1'
 
-cookbook 'nginx'
 cookbook 'hhvm'
 cookbook 'services'
-cookbook 'virtualbox-guest-additions'
+cookbook 'nginx'
 
-cookbook "nginx-php-app",
-  :git => "https://github.com/ktunkiewicz/nginx-php-app"
-
+cookbook 'blurobot',
+  :path => "./site-cookbooks"
