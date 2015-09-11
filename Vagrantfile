@@ -35,7 +35,8 @@ box = {
 #   "ami": "ami-fdf6d78a",
 #   "region": "eu-west-1",
 #   "instance_type": "t2.micro",
-#   "instance_username": "ubuntu"
+#   "instance_username": "ubuntu",
+#   "instances": 1
 # }
 #
 # The code expects that following components exists in your AWS setup:
@@ -56,10 +57,18 @@ provider = args['provider'].nil? ? 'virtualbox' : args['provider']
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = box[provider]
-  config.vm.network "forwarded_port", guest: 80, host: 2000
+  config.vm.network "forwarded_port", guest: 80, host: 8000
 
-  config.vm.define "#{project}_#{provider}"
   config.vm.synced_folder project_files, "/webapps/#{project}", owner: "www-data", group: "www-data"
+
+  aws_json = JSON.parse(Pathname(__FILE__).dirname.join('.aws', 'config.json').read)
+  if provider != "virtualbox"
+    for i in 1..aws_json['instances']
+      config.vm.define "#{project}#{i}_#{provider}"
+    end
+  else
+    config.vm.define "#{project}_#{provider}"
+  end
 
   #
   # VirtualBox
@@ -72,7 +81,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # AWS
   #
   config.vm.provider "aws" do |aws, override|
-    aws_json = JSON.parse(Pathname(__FILE__).dirname.join('.aws', 'config.json').read)
     aws.elb               = "#{project}-balancer"
     aws.keypair_name      = "#{project}-keypair"
     aws.security_groups   = [ "#{project}-firewall" ]
@@ -100,7 +108,7 @@ SCRIPT
   #
   vagrant_json = JSON.parse(Pathname(__FILE__).dirname.join('nodes', "#{provider}.json").read)
   config.vm.provision :chef_solo do |chef|
-     chef.cookbooks_path = [ "cookbooks", "site-cookbooks" ]
+     chef.cookbooks_path = "cookbooks"
      chef.roles_path = "roles"
      chef.data_bags_path = "data_bags"
      chef.run_list = vagrant_json.delete('run_list') if vagrant_json['run_list']

@@ -1,8 +1,9 @@
 {
-  "website": {
-    "url": "blurobot.tk",
+  "nginx_website": {
+    "hostname": "blurobot.tk",
     "name": "blurobot",
-    "public": "/public"
+    "public": "/public",
+    "root": "/webapps"
   },
   "run_list": [
     "role[web]",

@@ -7,5 +7,5 @@ cookbook 'hhvm'
 cookbook 'services'
 cookbook 'nginx'
 
-cookbook 'blurobot',
-  :path => "./site-cookbooks"
+cookbook 'nginx_website',
+  :git => "https://github.com/ktunkiewicz/nginx_website"

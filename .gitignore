@@ -3,3 +3,4 @@
 /.aws/
 /.vagrant/
 /.idea/
+Cheffile.lock
