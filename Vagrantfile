@@ -79,9 +79,9 @@ run_list = [
 # }
 #
 # The code expects that following components exists in your AWS setup:
-# - security group with name <server_name>-firewall
-# - keypair with name <server_name>-keypair
-# - (optional) balancer with name <server_name>-balancer
+# - security group with name <server_name>
+# - keypair with name <server_name>
+# - (optional) balancer with name <server_name>
 #
 # Your keypair file should also be saved in .aws directory. Its name should be <server_name>-keypair.pem
 #
@@ -122,8 +122,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # AWS
   #
   config.vm.provider "aws" do |aws, override|
-    aws.keypair_name      = "#{server_name}-keypair"
-    aws.security_groups   = [ "#{server_name}-firewall" ]
+    aws.keypair_name      = "#{server_name}"
+    aws.security_groups   = [ "#{server_name}" ]
     aws.tags              = { 'Name' => "#{server_name}_#{provider}" }
     aws.ami               = aws_json['ami']
     aws.region            = aws_json['region']
@@ -131,8 +131,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     aws.access_key_id     = aws_json['access_key_id']
     aws.secret_access_key = aws_json['secret_access_key']
     override.ssh.username = aws_json['instance_username']
-    override.ssh.private_key_path = Pathname(__FILE__).dirname.join('.aws', "#{server_name}-keypair.pem")
-    if aws_json['balancer_enabled'] then aws.elb = "#{server_name}-balancer" end
+    override.ssh.private_key_path = Pathname(__FILE__).dirname.join('.aws', "#{server_name}.pem")
+    if aws_json['balancer_enabled'] then aws.elb = "#{server_name}" end
   end
 
   #

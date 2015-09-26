@@ -61,9 +61,9 @@ Your keypair file should also be saved in .aws directory. Its name should be <se
 ### AWS components
 
 The code expects that following components exists in your AWS setup:
-- security group with name <server_name>-firewall
-- keypair with name <server_name>-keypair
-- (optional) balancer with name <server_name>-balancer
+- security group with name {server_name}
+- keypair with name {server_name}
+- (optional) balancer with name {server_name}
 
 ## Usage
 
