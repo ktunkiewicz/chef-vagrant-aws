@@ -6,6 +6,8 @@ site 'https://supermarket.getchef.com/api/v1'
 cookbook 'hhvm'
 cookbook 'services'
 cookbook 'nginx'
+cookbook 'php-fpm'
 
-cookbook 'nginx_website',
-  :git => "https://github.com/ktunkiewicz/nginx_website"
+cookbook 'nginx-website',
+  :git => "https://github.com/ktunkiewicz/nginx-website"
+

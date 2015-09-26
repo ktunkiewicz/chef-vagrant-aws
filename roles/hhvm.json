@@ -1,0 +1,16 @@
+{
+  "name": "hhvm",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "description": "The HHVM PHP engine",
+  "default_attributes": {
+    "services":{
+      "hhvm": [ "enable", "start" ]
+    }
+  },
+  "run_list": [
+    "recipe[hhvm]",
+    "recipe[php-ini-generator::hhvm]",
+    "recipe[services]"
+  ]
+}

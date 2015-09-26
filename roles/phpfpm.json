@@ -1,0 +1,11 @@
+{
+  "name": "phpfpm",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "description": "The PHP-FPM",
+  "run_list": [
+    "recipe[apt-php5-ppa]",
+    "recipe[php-fpm]",
+    "recipe[php-ini-generator::phpfpm]"
+  ]
+}

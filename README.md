@@ -7,12 +7,12 @@ You can modify the Vagrant file to use with your project by editing following va
 of the Vagrantfile:
 
 ```
-project = 'blurobot'
-project_files = '../BluRobotWebApp'
+server_name = 'webserver'
+websites_source = './example_websites'
+websites_destination = '/www'
 ```
 
-This script was created for Ubuntu 12.04 but it should work with others distributions as well.
-You can change the local vagrant box name in the Vagrantfile. 
+This script was created for Ubuntu 12.04.You can change the local vagrant box name in the Vagrantfile. 
 The aws image must by any image with `aws` provider enabled (it doesn't matter what image you put here so I use a dummy image).
 
 ```
@@ -21,6 +21,23 @@ box = {
  'aws' => 'dimroc/awsdummy'
 }
 ```
+
+Configure the ports redirection (for virtualbox):
+```
+http_port = 8000
+https_port = 8443
+```
+
+You can also modify your VM parameters to match your AWS instances parameters:
+```
+guest_ram = 1024
+guest_cpus = 1
+```
+
+# Websites configuration
+
+Websites are configures using nginx-websites chef recipe which uses "websites" databag as a source of configuration to setup nginx.
+Please read more here: https://github.com/ktunkiewicz/nginx-website
 
 # The AWS configuration
 
@@ -38,14 +55,14 @@ Example configuration file `.aws/config.json`
 }
 ```
 
-You also have to put your keypair file in the .aws folder.
+Your keypair file should also be saved in .aws directory. Its name should be <server_name>-keypair.pem
 
 ### AWS components
 
 The code expects that following components exists in your AWS setup:
-- security group with name project_name-firewall
-- balancer with name project_name-balancer
-- keypair with name project_name-keypair
+- security group with name <server_name>-firewall
+- keypair with name <server_name>-keypair
+- (optional) balancer with name <server_name>-balancer
 
 ## Usage
 

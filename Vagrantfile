@@ -1,29 +1,67 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
-VAGRANTFILE_API_VERSION = "2"
+#
+# This project allows you to deploy a typical PHP web server:
+# - Nginx                  web server
+# - php-fpm or HHVM        php engine
+#
+# Supported providers are:
+# - Virtualbox             for local development
+# - AWS                    with many instances and balancer support
+# - possibly more in future
+#
+#
+# Name your server below.
+# The server name is used in many places (ex. naming instances or keypairs in AWS).
+#
+server_name = 'webserver'
 
 #
-# VIRTUALBOX & AWS VAGRANTFILE
+# All websites that will be deployed to this server must be located in the below directory
+# The `./example_websites` folder is where soome example website is placed, you probably want to change that to
+# path where you keep your website code. The path can be absolute or relative.
 #
-# This Vagrantfile works fine with virtualbox and AWS.
-#
-# You can modify the project name below:
+websites_source = './example_websites'
 
-project = 'blurobot'
-project_files = '../BluRobotWebApp'
+# This is where websites are stored on the server
+# You need to know that value to properly setup `root` property in `websites` data bag.
+#
+websites_destination = '/www'
 
 #
-# This script was created for Ubuntu 12.04 but it should work fine with any distribution.
-# You can change the local vagrant name below, the aws image must by any image with `aws` provider enabled
-# (it doesn't matter what image you put here so I use a dummy image).
+# This script was created for Ubuntu 12.04
+# You can change images for each provider below.
 #
 box = {
  'virtualbox' => 'ubuntu/precise64',
  'aws' => 'dimroc/awsdummy'
 }
 
+#
+# Guest virtualbox machine port mappings for ports 80 and 443:
+#
+http_port = 8000
+https_port = 8443
+
+#
+# Guest virtualbox machine hardware specs
+#
+guest_ram = 1024
+guest_cpus = 1
+
+#
+# Components
+# (comment the components that you don't want on your server)
+#
+run_list = [
+    "role[web]",
+    "role[phpfpm]",
+    "role[hhvm]"
+]
+
+#
+# ------ AWS provider ------- 
 #
 # Configuration of the AWS account should be placed in .aws/config.json file
 # If you are using Ubuntu you can locate the correct AMI id here: http://cloud-images.ubuntu.com/locator/ec2/
@@ -36,62 +74,65 @@ box = {
 #   "region": "eu-west-1",
 #   "instance_type": "t2.micro",
 #   "instance_username": "ubuntu",
-#   "instances": 1
+#   "instances": 1,
+#   "balancer_enabled": false
 # }
 #
 # The code expects that following components exists in your AWS setup:
-# - security group with name <project_name>-firewall
-# - balancer with name <project_name>-balancer
-# - keypair with name <project_name>-keypair
+# - security group with name <server_name>-firewall
+# - keypair with name <server_name>-keypair
+# - (optional) balancer with name <server_name>-balancer
 #
-# Your keypair file should also be saved in .aws directory. Its name should be <project_name>-keypair.pem
-# (it will have such name when you download it from AWS, so just don't change it)
+# Your keypair file should also be saved in .aws directory. Its name should be <server_name>-keypair.pem
 #
 #
 # -------------------------------------------------------------------------------
 #
 
+VAGRANTFILE_API_VERSION = "2"
 args = Hash[ ARGV.join(' ').scan(/--?([^=\s]+)(?:=(\S+))?/) ]
 supported_providers = %w(virtualbox aws)
 provider = args['provider'].nil? ? 'virtualbox' : args['provider']
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = box[provider]
-  config.vm.network "forwarded_port", guest: 80, host: 8000
+  config.vm.network "forwarded_port", guest: 80, host: http_port
+  config.vm.network "forwarded_port", guest: 443, host: https_port
 
-  config.vm.synced_folder project_files, "/webapps/#{project}", owner: "www-data", group: "www-data"
+  config.vm.synced_folder File.absolute_path(websites_source), websites_destination, owner: "www-data", group: "www-data"
 
   aws_json = JSON.parse(Pathname(__FILE__).dirname.join('.aws', 'config.json').read)
   if provider != "virtualbox"
     for i in 1..aws_json['instances']
-      config.vm.define "#{project}#{i}_#{provider}"
+      config.vm.define "#{server_name}#{i}_#{provider}"
     end
   else
-    config.vm.define "#{project}_#{provider}"
+    config.vm.define "#{server_name}_#{provider}"
   end
 
   #
   # VirtualBox
   #
   config.vm.provider "virtualbox" do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "1024"]
+    vb.memory = guest_ram
+    vb.cpus = guest_cpus
   end
 
   #
   # AWS
   #
   config.vm.provider "aws" do |aws, override|
-    aws.elb               = "#{project}-balancer"
-    aws.keypair_name      = "#{project}-keypair"
-    aws.security_groups   = [ "#{project}-firewall" ]
-    aws.tags              = { 'Project' => "#{project}" }
+    aws.keypair_name      = "#{server_name}-keypair"
+    aws.security_groups   = [ "#{server_name}-firewall" ]
+    aws.tags              = { 'Name' => "#{server_name}_#{provider}" }
     aws.ami               = aws_json['ami']
     aws.region            = aws_json['region']
     aws.instance_type     = aws_json['instance_type']
     aws.access_key_id     = aws_json['access_key_id']
     aws.secret_access_key = aws_json['secret_access_key']
     override.ssh.username = aws_json['instance_username']
-    override.ssh.private_key_path = Pathname(__FILE__).dirname.join('.aws', "#{project}-keypair.pem")
+    override.ssh.private_key_path = Pathname(__FILE__).dirname.join('.aws', "#{server_name}-keypair.pem")
+    if aws_json['balancer_enabled'] then aws.elb = "#{server_name}-balancer" end
   end
 
   #
@@ -106,13 +147,17 @@ SCRIPT
   #
   # Run Chef
   #
-  vagrant_json = JSON.parse(Pathname(__FILE__).dirname.join('nodes', "#{provider}.json").read)
   config.vm.provision :chef_solo do |chef|
-     chef.cookbooks_path = "cookbooks"
+     chef.cookbooks_path = [ "cookbooks", "site-cookbooks" ]
      chef.roles_path = "roles"
      chef.data_bags_path = "data_bags"
-     chef.run_list = vagrant_json.delete('run_list') if vagrant_json['run_list']
-     chef.json = vagrant_json
+     chef.run_list = run_list
+     chef.json = {
+       "provider" => provider,
+       "nginx-website" => {
+         "bag" => "websites-#{provider}"
+       }
+     }
   end
 
 end

@@ -1,9 +1,0 @@
-{
-  "name": "blurobot",
-  "chef_type": "role",
-  "json_class": "Chef::Role",
-  "description": "Blurobot project role",
-  "run_list": [
-    "recipe[nginx_website]"
-  ]
-}
