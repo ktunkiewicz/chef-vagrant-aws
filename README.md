@@ -51,7 +51,8 @@ Example configuration file `.aws/config.json`
   "region": "eu-west-1",
   "instance_type": "t2.micro",
   "instance_username": "ubuntu",
-  "instances": 2
+  "instances": 2,
+  "balancer_enabled": false
 }
 ```
 
